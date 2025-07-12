@@ -2,17 +2,18 @@
 // You can get one from https://account.mapbox.com/access-tokens/
 mapboxgl.accessToken = 'pk.eyJ1IjoiYm9iYnluZDUiLCJhIjoiY2x4b3kzd29iMDRkczJrcW50a2x0cW56aSJ9.J_26n1e6L3n0m7gP_f8T1Q';
 
-// Global state variables
-let tokens = 100;
-let xp = 0;
-let level = 1;
-let completedQuests = {};
+// Global state variables - Loaded from localStorage or default values
+let tokens = parseInt(localStorage.getItem('juanDerQuestTokens') || '100');
+let xp = parseInt(localStorage.getItem('juanDerQuestXp') || '0');
+let level = parseInt(localStorage.getItem('juanDerQuestLevel') || '1');
+let completedQuests = JSON.parse(localStorage.getItem('juanDerQuestCompletedQuests') || '{}');
+let username = localStorage.getItem('juanDerQuestUsername') || '';
+
 let activeView = 'home'; // Default view after successful wallet connection
 let isNavOverlayOpen = false;
 let showStartPage = true;
 let selectedQuestId = null; // New state to store the ID of the selected quest for detail view
 let connectedWalletAddress = null; // New state for connected wallet address
-let username = ''; // New state for username
 
 // Re-added location-related variables for quest detail page
 let userLatitude = null; // User's current latitude
@@ -294,6 +295,7 @@ function updateLevel() {
         }
     }
     level = newLevel;
+    saveAppState(); // Save state after level update
 }
 
 // Function to handle quest completion
@@ -306,39 +308,43 @@ function handleCompleteQuest(questId) {
                 xp += quest.rewardXp;
                 completedQuests[questId] = true;
                 updateLevel(); // Update level after XP changes
+                saveAppState(); // Save state after quest completion
                 renderApp(); // Re-render the app to reflect changes
-                alert(`Quest "${quest.name}" completed! You earned ${quest.rewardTokens} tokens and ${quest.rewardXp} XP.`);
+                showMessage("Quest Completed!", `Quest "${quest.name}" completed! You earned ${quest.rewardTokens} tokens and ${quest.rewardXp} XP.`);
             } else {
-                alert('You are not close enough to this quest location to complete it!');
+                showMessage("Location Alert", 'You are not close enough to this quest location to complete it!');
             }
         } else { // For quests without specific coordinates (e.g., "JuanDer Together")
             tokens += quest.rewardTokens;
             xp += quest.rewardXp;
             completedQuests[questId] = true;
             updateLevel();
+            saveAppState(); // Save state after quest completion
             renderApp();
-            alert(`Quest "${quest.name}" completed! You earned ${quest.rewardTokens} tokens and ${quest.rewardXp} XP.`);
+            showMessage("Quest Completed!", `Quest "${quest.name}" completed! You earned ${quest.rewardTokens} tokens and ${quest.rewardXp} XP.`);
         }
     } else if (completedQuests[questId]) {
-        alert('You have already completed this quest!');
+        showMessage("Quest Status", 'You have already completed this quest!');
     }
 }
 
 // Function to simulate adding tokens
 function addTokens(amount, source) {
     tokens += amount;
+    saveAppState(); // Save state after token change
     renderApp();
-    alert(`You gained ${amount} tokens via ${source}!`);
+    showMessage("Tokens Gained", `You gained ${amount} tokens via ${source}!`);
 }
 
 // Function to simulate token redemption
 function redeemTokens(amount) {
     if (tokens >= amount) {
         tokens -= amount;
+        saveAppState(); // Save state after token change
         renderApp();
-        alert(`You redeemed ${amount} tokens for a discount!`);
+        showMessage("Tokens Redeemed", `You redeemed ${amount} tokens for a discount!`);
     } else {
-        alert('Not enough tokens to redeem.');
+        showMessage("Insufficient Tokens", 'Not enough tokens to redeem.');
     }
 }
 
@@ -346,10 +352,11 @@ function redeemTokens(amount) {
 function donateTokens(amount) {
     if (tokens >= amount) {
         tokens -= amount;
+        saveAppState(); // Save state after token change
         renderApp();
-        alert(`You donated ${amount} tokens to a heritage site! Thank you for your contribution.`);
+        showMessage("Donation Successful", `You donated ${amount} tokens to a heritage site! Thank you for your contribution.`);
     } else {
-        alert('Not enough tokens to donate.');
+        showMessage("Insufficient Tokens", 'Not enough tokens to donate.');
     }
 }
 
@@ -385,7 +392,7 @@ function getUserLocation(callback) {
                         errorMessage = "The request to get user location timed out.";
                         break;
                 }
-                alert(errorMessage);
+                showMessage("Location Error", errorMessage);
                 if (callback) callback(false);
                 renderApp(); // Re-render to show error/denied status
             },
@@ -393,7 +400,7 @@ function getUserLocation(callback) {
         );
     } else {
         locationCheckStatus = 'error';
-        alert("Geolocation is not supported by your browser.");
+        showMessage("Geolocation Not Supported", "Geolocation is not supported by your browser.");
         if (callback) callback(false);
         renderApp(); // Re-render to show error
     }
@@ -423,7 +430,8 @@ function finishQuiz() {
     tokens += quizRewardTokens;
     xp += quizRewardXp;
     updateLevel();
-    alert(`Quiz completed! You scored ${quizScore} out of ${currentQuiz.questions.length}.\nYou earned ${quizRewardTokens} tokens and ${quizRewardXp} XP.`);
+    saveAppState(); // Save state after quiz completion
+    showMessage("Quiz Completed!", `Quiz completed! You scored ${quizScore} out of ${currentQuiz.questions.length}.\nYou earned ${quizRewardTokens} tokens and ${quizRewardXp} XP.`);
     activeView = 'home'; // Go back to home after quiz
     currentQuiz = null; // Reset quiz state
     renderApp();
@@ -437,11 +445,32 @@ function handleVote(optionId) {
         const option = mapVoteOptions.find(opt => opt.id === optionId);
         if (option) {
             option.votes++;
-            alert(`You voted for ${option.name}! ${voteCost} tokens deducted.`);
+            showMessage("Vote Cast", `You voted for ${option.name}! ${voteCost} tokens deducted.`);
         }
+        saveAppState(); // Save state after vote
         renderApp();
     } else {
-        alert('Not enough tokens to vote!');
+        showMessage("Insufficient Tokens", 'Not enough tokens to vote!');
+    }
+}
+
+// Custom Message Box Function
+function showMessage(title, message) {
+    const msgBox = document.getElementById('message-box');
+    const msgBoxTitle = document.getElementById('message-box-title');
+    const msgBoxContent = document.getElementById('message-box-content');
+    const msgBoxOkButton = document.getElementById('message-box-ok-button');
+
+    if (msgBox && msgBoxTitle && msgBoxContent && msgBoxOkButton) {
+        msgBoxTitle.textContent = title;
+        msgBoxContent.textContent = message;
+        msgBox.classList.remove('hidden');
+        msgBoxOkButton.onclick = () => {
+            msgBox.classList.add('hidden');
+        };
+    } else {
+        // Fallback to console.log if message box elements are not found
+        console.warn("Message box elements not found, falling back to console log:", title, message);
     }
 }
 
@@ -487,9 +516,9 @@ function renderDesktopNavbar() {
         <nav class="hidden md:flex items-center justify-between px-8 py-4 bg-white shadow-md rounded-b-xl z-50 fixed w-full top-0 left-0">
             <div class="flex items-center">
                 <img
-                    src="https://via.placeholder.com/100x40/34D399/FFFFFF?text=JUANDER+QUEST"
+                    src="./assets/logo.png"
                     alt="JuanDer Quest Logo"
-                    class="w-24 h-auto mr-6"
+                    class="w-20 h-auto mr-6"
                     onerror="this.onerror=null;this.src='https://via.placeholder.com/100x40/A7F3D0/10B981?text=Logo';"
                 />
                 <div class="flex space-x-6">
@@ -501,21 +530,7 @@ function renderDesktopNavbar() {
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <div class="flex items-center">
-                    <img
-                        src="https://via.placeholder.com/40x40/FCA5A5/FFFFFF?text=User"
-                        alt="User Profile"
-                        class="w-10 h-10 rounded-full border-2 border-green-300 shadow-md mr-2"
-                        onerror="this.onerror=null;this.src='https://via.placeholder.com/40x40/D1D5DB/FFFFFF?text=User';"
-                    />
-                    <div>
-                        <p class="text-gray-800 font-semibold">${username || 'JuanDerer'}</p>
-                        <p class="text-sm text-gray-500">Level ${level}</p>
-                    </div>
-                </div>
-                <span class="text-green-600 font-bold flex items-center">
-                    💰 <span class="ml-1">${tokens}</span>
-                </span>
+                
                 <button class="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all duration-200">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -533,7 +548,7 @@ function renderHomeView() {
         <div class="p-0 bg-white rounded-xl shadow-lg mt-6 max-w-4xl mx-auto overflow-hidden">
             <div class="relative w-full h-48 bg-gradient-to-b from-green-400 to-green-600 rounded-b-3xl overflow-hidden flex flex-col justify-end pb-4 px-4 shadow-md">
                 <img
-                    src="https://via.placeholder.com/800x300/60A5FA/FFFFFF?text=Mountains"
+                    src="./assets/background.jpg"
                     alt="Mountains background"
                     class="absolute inset-0 w-full h-full object-cover opacity-80"
                     onerror="this.onerror=null;this.src='https://via.placeholder.com/800x300/A7F3D0/10B981?text=Mountains+Fallback';"
@@ -541,20 +556,19 @@ function renderHomeView() {
                 <div class="relative z-10 flex justify-between items-start mb-4">
                     <div class="flex items-center">
                         <img
-                            src="https://via.placeholder.com/50x50/FCA5A5/FFFFFF?text=User"
+                            src="./assets/profile-icon.png"
                             alt="User Profile"
                             class="w-12 h-12 rounded-full border-2 border-white shadow-md mr-3"
                             onerror="this.onerror=null;this.src='https://via.placeholder.com/50x50/D1D5DB/FFFFFF?text=User';"
                         />
                         <div>
-                            <p class="text-white text-sm font-semibold">Welcome,</p>
-                            <p class="text-white text-xl font-bold">${username || 'JuanDerer Lengleng'}</p>
+                            <p class="text-white text-sm font-semibold">Welcome, ${username || 'Lengleng'}</p>
                             <div class="flex items-center space-x-3 mt-1">
                                 <span class="text-white text-sm font-semibold flex items-center">
-                                    💰 <span class="font-bold ml-1">${tokens}</span> Tokens
+                                    ✨ <span class="font-bold ml-1">${level}</span> Level
                                 </span>
                                 <span class="text-white text-sm font-semibold flex items-center">
-                                    ✨ <span class="font-bold ml-1">${level}</span> Level
+                                    💰 <span class="font-bold ml-1">${tokens}</span> Tokens
                                 </span>
                             </div>
                         </div>
@@ -679,16 +693,6 @@ function renderHomeView() {
                     `).join('')}
                 </div>
             </div>
-
-            <!-- Bottom Logo -->
-            <div class="flex justify-center p-4">
-                <img
-                    src="https://via.placeholder.com/100x40/34D399/FFFFFF?text=JUANDER+QUEST"
-                    alt="JuanDer Quest Logo"
-                    class="w-24 h-auto"
-                    onerror="this.onerror=null;this.src='https://via.placeholder.com/100x40/A7F3D0/10B981?text=Logo';"
-                />
-            </div>
         </div>
     `;
 }
@@ -812,16 +816,16 @@ function renderQuestsView() {
         <div class="p-0 bg-white rounded-xl shadow-lg mt-6 max-w-4xl mx-auto overflow-hidden">
             <div class="relative w-full h-48 bg-gradient-to-b from-green-400 to-emerald-600 rounded-b-3xl overflow-hidden flex flex-col justify-end pb-4 px-4 shadow-md">
                 <img
-                    src="https://via.placeholder.com/800x300/60A5FA/FFFFFF?text=Quests+Background"
+                    src="./assets/background.jpg"
                     alt="Quests background"
                     class="absolute inset-0 w-full h-full object-cover opacity-80"
                     onerror="this.onerror=null;this.src='https://via.placeholder.com/800x300/A7F3D0/10B981?text=Quests+Fallback';"
                 />
                 <div class="relative z-10 text-center">
                     <img
-                        src="https://via.placeholder.com/200x50.png?text=QUESTS"
+                        src="assets/questsLogo.png"
                         alt="QUESTS Title Bar"
-                        class="w-48 mx-auto mb-4"
+                        class="w-1/2 mx-auto mb-4"
                         onerror="this.onerror=null;this.src='https://via.placeholder.com/200x50.png?text=QUESTS';"
                     />
                 </div>
@@ -957,63 +961,43 @@ function renderWalletView() {
         <div class="p-0 bg-gradient-to-br from-orange-100 to-amber-200 rounded-xl shadow-lg mt-6 max-w-xl mx-auto overflow-hidden text-center">
             <div class="relative w-full h-48 bg-cover bg-center flex flex-col justify-between items-center py-4" style="background-image: url('https://via.placeholder.com/400x200/FDBA74/FFFFFF?text=Wallet+Header');">
                 <div class="absolute inset-0 bg-orange-500 opacity-70"></div>
-                <div class="relative z-10 w-full flex justify-between px-4">
-                    <button id="back-to-home-button-wallet" class="text-white">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                        </svg>
-                    </button>
-                    <button class="text-white">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                        </svg>
-                    </button>
-                </div>
-                <img src="https://via.placeholder.com/200x60/D97706/FFFFFF?text=MY+WALLET" alt="My Wallet" class="relative z-10 w-48 mb-4" onerror="this.onerror=null;this.src='https://via.placeholder.com/200x60/FDBA74/FFFFFF?text=MY+WALLET';">
-                <p class="relative z-10 text-white text-sm font-semibold">${truncatedAddress}</p>
+
+                <p class="text-lg">${truncatedAddress}</p>
             </div>
 
             <div class="p-6 bg-white rounded-b-xl shadow-lg">
                 <div class="bg-amber-100 p-4 rounded-lg shadow-inner border border-amber-200 mb-6 relative -mt-16 z-20">
-                    <img src="https://via.placeholder.com/120x40/FBBF24/FFFFFF?text=Balance" alt="Balance" class="mx-auto mb-2" onerror="this.onerror=null;this.src='https://via.placeholder.com/120x40/FBBF24/FFFFFF?text=Balance';">
+                    
                     <p class="text-4xl font-bold text-amber-800 flex items-center justify-center">
-                        ${tokens} <span class="ml-2 text-3xl">💰</span>
+                        ${tokens} <span class="ml-2 text-3xl"><img src="./assets/Token.png" class="w-10"></span>
                     </p>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
                     <button id="donate-tokens-button" class="flex flex-col items-center p-2 bg-emerald-50 rounded-lg shadow-md hover:bg-emerald-100 transition-colors">
-
-                        <i class="fa-solid fa-hand-holding-dollar text-xl text-emerald-600 mb-1"></i>
+                        <i class="fa-solid fa-hand-holding-dollar text-xl text-emerald-600"></i>
                         <span class="text-xs font-semibold text-gray-700">Donate</span>
                     </button>
                     <button id="redeem-tokens-button" class="flex flex-col items-center p-2 bg-emerald-50 rounded-lg shadow-md hover:bg-emerald-100 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-emerald-600 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 10v1m-7.5-6H2m14.5 0H22M4 6h16a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1z" />
-                        </svg>
+                        <i class="fa-solid fa-money-check-dollar text-xl text-emerald-600"></i>
+
                         <span class="text-xs font-semibold text-gray-700">Redeem</span>
                     </button>
                     <button id="top-up-tokens-button" class="flex flex-col items-center p-2 bg-emerald-50 rounded-lg shadow-md hover:bg-emerald-100 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-emerald-600 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 8h6m-5 0h.01M9 12h6m-5 0h.01M9 16h6m-5 0h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+                        <i class="fa-solid fa-coins text-xl text-emerald-600"></i>
                         <span class="text-xs font-semibold text-gray-700">Top Up</span>
                     </button>
                     <button id="earn-tokens-button" class="flex flex-col items-center p-2 bg-emerald-50 rounded-lg shadow-md hover:bg-emerald-100 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-emerald-600 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 10v1m-7.5-6H2m14.5 0H22M4 6h16a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1z" />
-                        </svg>
+                        <i class="fa-solid fa-gem text-xl text-emerald-600"></i>
+
                         <span class="text-xs font-semibold text-gray-700">Earn</span>
                     </button>
                 </div>
 
                 <div class="bg-amber-50 p-4 rounded-lg shadow-inner border border-amber-200 text-left">
-                    <h3 class="text-md font-bold text-amber-800 mb-2">ABOUT</h3>
-                    <p class="text-sm text-gray-700 mb-2">
+                    <h3 class="text-lg font-bold text-amber-800 mb-2">ABOUT</h3>
+                    <p class="text-md text-gray-700 mb-2">
                         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                    </p>
-                    <p class="text-sm text-gray-700">
-                        Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
                     </p>
                 </div>
             </div>
@@ -1140,15 +1124,13 @@ function renderMapVoteView() {
     return `
         <div class="relative min-h-screen bg-gradient-to-br from-green-50 to-green-100 flex flex-col items-center pt-24 pb-8">
             <img
-                src="https://via.placeholder.com/800x300/A7F3D0/10B981?text=Vote+Background"
+                src="./assets/background.jpg"
                 alt="Background"
                 class="absolute inset-0 w-full h-full object-cover opacity-60 z-0"
                 onerror="this.onerror=null;this.src='https://via.placeholder.com/800x300/A7F3D0/10B981?text=Vote+Background';"
             />
             <div class="relative z-10 flex flex-col items-center w-full max-w-md mx-auto px-4">
-                <div class="wooden-sign mb-8">
-                    <h2 class="text-white text-4xl font-extrabold tracking-wide uppercase text-shadow-lg drop-shadow-md">MAP VOTE</h2>
-                </div>
+                <img src="./assets/mapvote.png" class="">
 
                 <div class="bg-white rounded-xl shadow-lg p-6 w-full text-center mb-8">
                     <h3 class="text-2xl font-bold text-gray-800 mb-4">JuanDerers decide!</h3>
@@ -1182,9 +1164,9 @@ function renderMapVoteView() {
 // Renders the Start Page
 function renderStartPage() {
     return `
-        <div id="start-page" class="fixed inset-0 bg-gradient-to-br from-green-500 to-emerald-700 flex flex-col items-center justify-center z-[100] text-white p-4 text-center">
+        <div id="start-page" class="fixed inset-0 bg-gradient-to-br from-green-500 to-emerald-700 flex flex-col items-center justify-center z-[100] text-white p-4 text-center" style="background-image: url('./assets/start-page.png');">
             <img
-                src="https://via.placeholder.com/600x100.png?text=JuanDer+Quest+Logo"
+                src="./assets/logo.png"
                 alt="JuanDer Quest Logo"
                 class="w-full max-w-xl mb-8 animate-fade-in-up rounded-lg shadow-lg"
                 onerror="this.onerror=null;this.src='https://via.placeholder.com/600x100.png?text=JuanDer+Quest+Logo+Fallback';"
@@ -1199,15 +1181,11 @@ function renderStartPage() {
             ` : `
                 <button
                     id="start-adventure-button"
-                    class="bg-white text-green-700 font-bold py-4 px-8 rounded-full shadow-lg
-                    transform transition-all duration-300 hover:scale-105 hover:bg-green-100
-                    focus:outline-none focus:ring-4 focus:ring-green-300 animate-pop-in
-                    flex items-center justify-center space-x-3"
+                    class="
+                    transform transition-all background-transparent duration-300 animate-pop-in
+                    flex items-center justify-center space-x-3 relative"
                 >
-                    <span class="text-xl">Start Your Adventure</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
+                    <img src="./assets/startbutton.png" class="w-8/12">
                 </button>
             `}
         </div>
@@ -1300,11 +1278,8 @@ function renderApp() {
 
     // Mobile nav toggle and overlay are now always rendered, but hidden on desktop via CSS
     const mobileNavToggleHtml = `
-        <button id="mobile-nav-toggle" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-green-600 hover:bg-green-700 text-white text-lg font-bold py-3 px-6 rounded-full shadow-xl transform transition-transform duration-300 hover:scale-105 z-[99] flex items-center justify-center w-16 h-16 md:hidden
-            ${activeView === 'connect-wallet' ? 'hidden' : ''}">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 transition-all duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                ${isNavOverlayOpen ? `<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />` : `<path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />`}
-            </svg>
+        <button id="mobile-nav-toggle" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-green-600 hover:bg-green-700 text-white text-lg font-bold py-3 px-6 rounded-full shadow-xl transform transition-transform duration-300 hover:scale-105 z-[99] flex items-center justify-center w-16 h-16 relative sm:hidden">
+            <img src="./assets/NavButton.png" class="absolute">
         </button>
         ${renderNavOverlay()}
     `;
@@ -1334,6 +1309,40 @@ function renderApp() {
         `;
         attachEventListeners();
     }
+}
+
+// Function to attempt wallet connection
+async function attemptWalletConnection() {
+    if (window.ethereum) {
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            if (accounts.length > 0) {
+                connectedWalletAddress = accounts[0];
+                // If username is already set (from localStorage or input), go to home
+                if (username) {
+                    activeView = 'home';
+                } else {
+                    // If no username, stay on connect-wallet to prompt for it
+                    activeView = 'connect-wallet';
+                }
+                console.log(`Wallet connected: ${connectedWalletAddress}`);
+            } else {
+                connectedWalletAddress = null;
+                activeView = 'connect-wallet'; // No accounts, force connect wallet view
+                console.log("No accounts found.");
+            }
+        } catch (error) {
+            console.error("Error connecting to MetaMask:", error);
+            connectedWalletAddress = null;
+            activeView = 'connect-wallet'; // Error in connection, force connect wallet view
+            showMessage("Connection Failed", "Failed to connect wallet. Please ensure MetaMask is unlocked and try again.");
+        }
+    } else {
+        connectedWalletAddress = null;
+        activeView = 'connect-wallet'; // MetaMask not detected, force connect wallet view
+        console.log("MetaMask not detected.");
+    }
+    renderApp();
 }
 
 function attachEventListeners() {
@@ -1376,9 +1385,12 @@ function attachEventListeners() {
     function redirectToMetaMaskAppOrStore() {
         const appStoreUrl = 'https://apps.apple.com/us/app/metamask/id1438144202';
         const playStoreUrl = 'https://play.google.com/store/apps/details?id=io.metamask';
-        const deepLink = 'metamask://'; // Generic deep link
+        const currentUrl = encodeURIComponent(window.location.href); // Get current URL to return to
 
-        // Try to open the app via deep link
+        // Try to open the app via deep link with a return URL
+        // Note: The exact 'returnUrl' parameter name and behavior can vary by app.
+        // 'dapp' is a common parameter for MetaMask deep links.
+        const deepLink = `metamask://dapp/${currentUrl}`;
         window.location.href = deepLink;
 
         // Set a timeout to redirect to the store if the app doesn't open
@@ -1389,7 +1401,7 @@ function attachEventListeners() {
                 window.location.href = appStoreUrl;
             } else {
                 // Fallback for desktop if MetaMask is not installed
-                alert("MetaMask is not installed. Please install the MetaMask extension for your browser.");
+                showMessage("MetaMask Not Installed", "MetaMask is not installed. Please install the MetaMask extension for your browser.");
             }
         }, 1000); // 1 second delay to allow deep link to work
     }
@@ -1400,28 +1412,51 @@ function attachEventListeners() {
         connectWalletButton.onclick = async () => {
             const usernameInput = document.getElementById('username-input');
             if (!usernameInput || !usernameInput.value.trim()) {
-                alert("Please enter a username.");
+                showMessage("Username Required", "Please enter a username to proceed.");
                 return;
             }
             username = usernameInput.value.trim(); // Store the username
+            localStorage.setItem('juanDerQuestUsername', username); // Save username to localStorage
 
             if (window.ethereum) {
-                try {
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    connectedWalletAddress = accounts[0];
-                    alert(`Wallet connected: ${connectedWalletAddress} with username: ${username}`);
-                    activeView = 'home'; // Automatically go to home after successful connection and username entry
-                    renderApp();
-                } catch (error) {
-                    console.error("User denied account access or other error:", error);
-                    alert("Failed to connect wallet. Please ensure MetaMask is unlocked and try again.");
-                }
+                await attemptWalletConnection(); // Attempt connection directly
             } else {
                 // MetaMask not installed, try to open app or redirect to store
                 redirectToMetaMaskAppOrStore();
             }
         };
     }
+
+    // Listen for accounts changes from MetaMask
+    if (window.ethereum) {
+        window.ethereum.on('accountsChanged', (accounts) => {
+            if (accounts.length > 0) {
+                connectedWalletAddress = accounts[0];
+                console.log("MetaMask account changed to:", connectedWalletAddress);
+            } else {
+                connectedWalletAddress = null;
+                console.log("MetaMask disconnected or no accounts available.");
+            }
+            renderApp(); // Re-render to reflect new wallet status
+        });
+
+        // Listen for chain changes from MetaMask
+        window.ethereum.on('chainChanged', (chainId) => {
+            console.log("MetaMask chain changed to:", chainId);
+            // You might want to prompt the user to switch networks or handle it
+            renderApp(); // Re-render if chain change affects UI
+        });
+    }
+
+    // Add a window focus listener to re-check wallet connection when user returns to the tab
+    window.addEventListener('focus', async () => {
+        // If wallet is not connected and we are not on the start page, try to connect
+        if (!connectedWalletAddress && !showStartPage) {
+            console.log("Window focused, attempting to reconnect wallet...");
+            await attemptWalletConnection();
+        }
+    });
+
 
     // Quest card click handler in Home View and Quests View
     document.querySelectorAll('[data-quest-id]').forEach(card => {
@@ -1577,4 +1612,7 @@ function attachEventListeners() {
 }
 
 // Initial render when the window loads
-window.onload = renderApp;
+window.onload = async () => {
+    await attemptWalletConnection(); // Attempt connection on initial load
+    renderApp();
+};
