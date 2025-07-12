@@ -231,7 +231,7 @@ const quizzes = {
         questions: [
             {
                 question: "What is coral bleaching?",
-                options: ["A. Corals changing color for camouflage", "B. Corals expelling algae due0 to stress", "C. Corals growing faster in sunlight", "D. Corals absorbing more nutrients"],
+                options: ["A. Corals changing color for camouflage", "B. Corals expelling algae due to stress", "C. Corals growing faster in sunlight", "D. Corals absorbing more nutrients"],
                 answer: "B. Corals expelling algae due to stress"
             },
             {
@@ -257,6 +257,16 @@ const quizzes = {
         ]
     }
 };
+
+// Map Vote Options
+const mapVoteOptions = [
+    { id: 'option1', name: 'Destination A', imageUrl: 'https://placehold.co/150x150/ADD8E6/000000?text=Option+1', votes: 0 },
+    { id: 'option2', name: 'Destination B', imageUrl: 'https://placehold.co/150x150/90EE90/000000?text=Option+2', votes: 0 },
+    { id: 'option3', name: 'Destination C', imageUrl: 'https://placehold.co/150x150/FFB6C1/000000?text=Option+3', votes: 0 },
+    { id: 'option4', name: 'Destination D', imageUrl: 'https://placehold.co/150x150/FFD700/000000?text=Option+4', votes: 0 },
+    { id: 'option5', name: 'Destination E', imageUrl: 'https://placehold.co/150x150/DA70D6/000000?text=Option+5', votes: 0 },
+    { id: 'option6', name: 'Destination F', imageUrl: 'https://placehold.co/150x150/87CEEB/000000?text=Option+6', votes: 0 },
+];
 
 
 // Haversine formula to calculate distance between two lat/lon points in kilometers
@@ -419,6 +429,22 @@ function finishQuiz() {
     renderApp();
 }
 
+// Voting Functions
+function handleVote(optionId) {
+    const voteCost = 10; // Example cost per vote
+    if (tokens >= voteCost) {
+        tokens -= voteCost;
+        const option = mapVoteOptions.find(opt => opt.id === optionId);
+        if (option) {
+            option.votes++;
+            alert(`You voted for ${option.name}! ${voteCost} tokens deducted.`);
+        }
+        renderApp();
+    } else {
+        alert('Not enough tokens to vote!');
+    }
+}
+
 
 // --- View Rendering Functions ---
 
@@ -429,6 +455,7 @@ function renderNavOverlay() {
         { view: 'quests', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01', text: 'Quests' },
         { view: 'profile', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z', text: 'Profile' },
         { view: 'wallet', icon: 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z', text: 'Wallet' },
+        { view: 'map-vote', icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z', text: 'Map Vote' }, // New button for Map Vote
     ];
 
     return `
@@ -470,6 +497,7 @@ function renderDesktopNavbar() {
                     <button data-view="quests" class="text-gray-600 hover:text-green-700 font-semibold transition-colors duration-200 ${activeView === 'quests' ? 'text-green-700 border-b-2 border-green-700' : ''}">Quests</button>
                     <button data-view="profile" class="text-gray-600 hover:text-green-700 font-semibold transition-colors duration-200 ${activeView === 'profile' ? 'text-green-700 border-b-2 border-green-700' : ''}">Profile</button>
                     <button data-view="wallet" class="text-gray-600 hover:text-green-700 font-semibold transition-colors duration-200 ${activeView === 'wallet' ? 'text-green-700 border-b-2 border-green-700' : ''}">Wallet</button>
+                    <button data-view="map-vote" class="text-gray-600 hover:text-green-700 font-semibold transition-colors duration-200 ${activeView === 'map-vote' ? 'text-green-700 border-b-2 border-green-700' : ''}">Map Vote</button>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -926,7 +954,7 @@ function renderProfileView() {
 function renderWalletView() {
     const truncatedAddress = connectedWalletAddress ? `${connectedWalletAddress.substring(0, 10)}...${connectedWalletAddress.substring(connectedWalletAddress.length - 10)}` : 'N/A';
     return `
-        <div class="p-0 bg-gradient-to-br from-orange-100 to-amber-200 rounded-xl shadow-lg mt-6 max-w-4xl mx-auto overflow-hidden text-center">
+        <div class="p-0 bg-gradient-to-br from-orange-100 to-amber-200 rounded-xl shadow-lg mt-6 max-w-xl mx-auto overflow-hidden text-center">
             <div class="relative w-full h-48 bg-cover bg-center flex flex-col justify-between items-center py-4" style="background-image: url('https://via.placeholder.com/400x200/FDBA74/FFFFFF?text=Wallet+Header');">
                 <div class="absolute inset-0 bg-orange-500 opacity-70"></div>
                 <div class="relative z-10 w-full flex justify-between px-4">
@@ -955,9 +983,8 @@ function renderWalletView() {
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
                     <button id="donate-tokens-button" class="flex flex-col items-center p-2 bg-emerald-50 rounded-lg shadow-md hover:bg-emerald-100 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-emerald-600 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.007 12.007 0 002.944 12c0 2.897.87 5.66 2.453 8.056A12.007 12.007 0 0012 21.056c2.897 0 5.66-.87 8.056-2.453A12.007 12.007 0 0021.056 12a11.955 11.955 0 01-3.04-8.618z" />
-                        </svg>
+
+                        <i class="fa-solid fa-hand-holding-dollar text-xl text-emerald-600 mb-1"></i>
                         <span class="text-xs font-semibold text-gray-700">Donate</span>
                     </button>
                     <button id="redeem-tokens-button" class="flex flex-col items-center p-2 bg-emerald-50 rounded-lg shadow-md hover:bg-emerald-100 transition-colors">
@@ -1108,6 +1135,49 @@ function renderQuestDetailPage() {
     `;
 }
 
+// Renders the Map Vote Page
+function renderMapVoteView() {
+    return `
+        <div class="relative min-h-screen bg-gradient-to-br from-green-50 to-green-100 flex flex-col items-center pt-24 pb-8">
+            <img
+                src="https://via.placeholder.com/800x300/A7F3D0/10B981?text=Vote+Background"
+                alt="Background"
+                class="absolute inset-0 w-full h-full object-cover opacity-60 z-0"
+                onerror="this.onerror=null;this.src='https://via.placeholder.com/800x300/A7F3D0/10B981?text=Vote+Background';"
+            />
+            <div class="relative z-10 flex flex-col items-center w-full max-w-md mx-auto px-4">
+                <div class="wooden-sign mb-8">
+                    <h2 class="text-white text-4xl font-extrabold tracking-wide uppercase text-shadow-lg drop-shadow-md">MAP VOTE</h2>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 w-full text-center mb-8">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">JuanDerers decide!</h3>
+                    <p class="text-gray-700 text-lg mb-6">Vote for the destination that wowed you most!</p>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        ${mapVoteOptions.map(option => `
+                            <div class="flex flex-col items-center bg-gray-50 rounded-lg shadow-md overflow-hidden border border-gray-200 p-3">
+                                <img
+                                    src="${option.imageUrl}"
+                                    alt="${option.name}"
+                                    class="w-full h-24 object-cover rounded-md mb-3"
+                                    onerror="this.onerror=null;this.src='https://placehold.co/150x150/E0E0E0/333333?text=Image';"
+                                />
+                                <p class="font-semibold text-gray-800 text-sm mb-2">${option.name}</p>
+                                <button data-option-id="${option.id}"
+                                        class="vote-button w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-full shadow-md transition-transform duration-300 hover:scale-105">
+                                    VOTE
+                                </button>
+                                <p class="text-xs text-gray-500 mt-1">Votes: ${option.votes}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 
 // Renders the Start Page
 function renderStartPage() {
@@ -1219,6 +1289,9 @@ function renderApp() {
             break;
         case 'quiz-page':
             mainContentHtml = renderQuizPage();
+            break;
+        case 'map-vote': // New case for Map Vote page
+            mainContentHtml = renderMapVoteView();
             break;
         default:
             // Fallback to connect-wallet if something goes wrong and wallet isn't connected
@@ -1494,7 +1567,13 @@ function attachEventListeners() {
     const earnTokensButton = document.getElementById('earn-tokens-button');
     if (earnTokensButton) earnTokensButton.onclick = () => addTokens(tokens, 'Watching Ad');
 
-    // Removed specific quiz buttons from Token Utility section as they are now part of the quiz list
+    // Map Vote button handlers
+    document.querySelectorAll('.vote-button').forEach(button => {
+        button.onclick = (event) => {
+            const optionId = event.currentTarget.dataset.optionId;
+            handleVote(optionId);
+        };
+    });
 }
 
 // Initial render when the window loads
