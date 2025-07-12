@@ -898,59 +898,87 @@ function renderProfileView() {
     ));
 
     return `
-        <div class="p-6 bg-white rounded-xl shadow-lg mt-6 max-w-4xl mx-auto">
-            <h2 class="text-3xl font-bold text-green-700 mb-6 text-center">Your JuanDerer Profile</h2>
+        <div class="relative w-full max-w-sm bg-white rounded-3xl shadow-xl text-white overflow-hidden pb-5">
+            <div class="flex justify-between items-center p-4 relative z-10">
+                <i class="fas fa-arrow-left text-2xl"></i>
+                <i class="fas fa-bell text-2xl"></i>
+            </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div class="bg-emerald-50 p-5 rounded-lg shadow-md border border-emerald-200">
-                    <h3 class="text-xl font-semibold text-emerald-800 mb-3">Level & Progress</h3>
-                    <p class="text-gray-700 text-lg mb-2">Current Level: <span class="font-bold text-green-600">${level}</span></p>
-                    <p class="text-gray-700 text-lg mb-4">Total XP: <span class="font-bold text-green-600">${xp}</span></p>
+            <div class="flex flex-col items-center px-5 relative z-0 -mt-8 pb-0">
+                <img src="./assets/profile-icon.png" alt="Profile Picture" class="w-32 h-32 rounded-full border-4 border-white object-cover shadow-lg">
+                <div class="text-center mt-4 w-full">
+                    <div class="inline-flex items-center justify-center bg-white p-2 pl-4 pr-3 rounded-full shadow-md">
+                        <span class="bg-amber-800 text-white px-3 py-1 rounded-full text-lg font-bold mr-3 shadow-sm">LengLeng</span>
+                        <span class="text-yellow-400 text-xl font-bold">12,345</span>
+                        <img src="./assets/Token.png" alt="" class="w-8">
+                    </div>
+                </div>
+            </div>
 
-                    ${level < 10 ? `
-                        <p class="text-gray-600 text-sm mb-2">
-                            XP to next level (${level + 1}): <span class="font-bold">${nextLevelXpThreshold - xp}</span>
-                        </p>
-                        <div class="w-full bg-gray-200 rounded-full h-3">
-                            <div
-                                class="bg-green-500 h-3 rounded-full transition-all duration-500 ease-out"
-                                style="width: ${progressPercentage}%"
-                            ></div>
+            <div class="bg-amber-100 border-4 border-amber-800 rounded-xl m-5 p-5 shadow-lg relative pt-10">
+                <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-amber-900 text-white text-2xl font-bold px-6 py-2 rounded-xl shadow-md border-2 border-amber-950 whitespace-nowrap">
+                    Badges Earned
+                </div>
+                <div class="grid grid-cols-3 gap-4 mt-4">
+                    <div class="flex flex-col items-center p-2 bg-white rounded-lg shadow-sm border border-gray-200">
+                        <div class="w-20 h-24 bg-blue-500 rounded shield-shape flex justify-center items-center mb-1 shadow-inner border border-blue-600">
+                            <img src="./assets/baewatcher.png" alt="Baewatcher Badge" class="w-16 h-16 object-contain drop-shadow">
                         </div>
-                        <p class="text-right text-xs text-gray-500 mt-1">${Math.round(progressPercentage)}%</p>
-                    ` : `
-                        <p class="text-green-600 font-bold text-lg">You've reached the maximum level!</p>
-                    `}
-                </div>
+                        <span class="text-sm font-semibold text-gray-800">BaeWatcher</span>
+                    </div>
+                    <div class="flex flex-col items-center p-2 bg-white rounded-lg shadow-sm border border-gray-200">
+                        <div class="w-20 h-24 bg-green-500 rounded shield-shape flex justify-center items-center mb-1 shadow-inner border border-green-600">
+                            <img src="./assets/gubatron.png" alt="GubaTron Badge" class="w-16 h-16 object-contain drop-shadow">
+                        </div>
+                        <span class="text-sm font-semibold text-gray-800">GubaTron</span>
+                    </div>
+                    <div class="flex flex-col items-center p-2 bg-white rounded-lg shadow-sm border border-gray-200">
+                        <div class="w-20 h-24 bg-red-500 rounded shield-shape flex justify-center items-center mb-1 shadow-inner border border-red-600">
+                            <img src="./assets/juanderfull.png" alt="JuanDerFull Badge" class="w-16 h-16 object-contain drop-shadow">
+                        </div>
+                        <span class="text-sm font-semibold text-gray-800">JuanDerFull</span>
+                    </div>
 
-                <div class="bg-emerald-50 p-5 rounded-lg shadow-md border border-emerald-200">
-                    <h3 class="text-xl font-semibold text-emerald-800 mb-3">Earned Badges</h3>
-                    ${earnedBadges.length > 0 ? `
-                        <ul class="list-disc list-inside text-gray-700">
-                            ${earnedBadges.map(badge => `
-                                <li class="mb-1">🌟 ${badge}</li>
-                            `).join('')}
-                        </ul>
-                    ` : `
-                        <p class="text-gray-600">Complete quests to earn badges!</p>
-                    `}
+                    <div class="flex flex-col items-center p-2 bg-white rounded-lg shadow-sm border border-gray-200">
+                        <div class="w-20 h-24 bg-gray-400 rounded shield-shape flex justify-center items-center mb-1 shadow-inner border border-gray-500">
+                            <i class="fas fa-lock text-3xl text-gray-600"></i>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-800"></span>
+                    </div>
+                    <div class="flex flex-col items-center p-2 bg-white rounded-lg shadow-sm border border-gray-200">
+                        <div class="w-20 h-24 bg-gray-400 rounded shield-shape flex justify-center items-center mb-1 shadow-inner border border-gray-500">
+                            <i class="fas fa-lock text-3xl text-gray-600"></i>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-800"></span>
+                    </div>
+                    <div class="flex flex-col items-center p-2 bg-white rounded-lg shadow-sm border border-gray-200">
+                        <div class="w-20 h-24 bg-gray-400 rounded shield-shape flex justify-center items-center mb-1 shadow-inner border border-gray-500">
+                            <i class="fas fa-lock text-3xl text-gray-600"></i>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-800"></span>
+                    </div>
+
+                    <div class="flex flex-col items-center p-2 bg-white rounded-lg shadow-sm border border-gray-200">
+                        <div class="w-20 h-24 bg-gray-400 rounded shield-shape flex justify-center items-center mb-1 shadow-inner border border-gray-500">
+                            <i class="fas fa-lock text-3xl text-gray-600"></i>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-800"></span>
+                    </div>
+                    <div class="flex flex-col items-center p-2 bg-white rounded-lg shadow-sm border border-gray-200">
+                        <div class="w-20 h-24 bg-gray-400 rounded shield-shape flex justify-center items-center mb-1 shadow-inner border border-gray-500">
+                            <i class="fas fa-lock text-3xl text-gray-600"></i>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-800"></span>
+                    </div>
+                    <div class="flex flex-col items-center p-2 bg-white rounded-lg shadow-sm border border-gray-200">
+                        <div class="w-20 h-24 bg-gray-400 rounded shield-shape flex justify-center items-center mb-1 shadow-inner border border-gray-500">
+                            <i class="fas fa-lock text-3xl text-gray-600"></i>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-800"></span>
+                    </div>
                 </div>
             </div>
-
-            <div class="bg-emerald-50 p-5 rounded-lg shadow-md border border-emerald-200">
-                <h3 class="text-xl font-semibold text-emerald-800 mb-3">Completed Quests</h3>
-                ${Object.keys(completedQuests).length > 0 ? `
-                    <ul class="list-disc list-inside text-gray-700">
-                        ${Object.keys(completedQuests).map(questId => {
-                            const quest = quests.find(q => q.id === questId);
-                            return quest ? `<li class="mb-1">✅ ${quest.name}</li>` : '';
-                        }).join('')}
-                    </ul>
-                ` : `
-                    <p class="text-gray-600">No quests completed yet. Go out and JuanDer!</p>
-                `}
-            </div>
-        </div>
+        </div>  
     `;
 }
 
