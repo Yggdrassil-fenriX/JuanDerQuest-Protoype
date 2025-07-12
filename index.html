@@ -100,22 +100,32 @@
         <!-- Content will be rendered here by JavaScript -->
     </div>
 
+    <!-- Custom Message Box HTML -->
+    <div id="message-box" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[101] hidden">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+            <h3 id="message-box-title" class="text-xl font-bold mb-4 text-gray-800"></h3>
+            <p id="message-box-content" class="text-gray-700 mb-6"></p>
+            <button id="message-box-ok-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full">OK</button>
+        </div>
+    </div>
+
     <script>
         // Mapbox Access Token (Replace with your actual token)
         // You can get one from https://account.mapbox.com/access-tokens/
         mapboxgl.accessToken = 'pk.eyJ1IjoiYm9iYnluZDUiLCJhIjoiY2x4b3kzd29iMDRkczJrcW50a2x0cW56aSJ9.J_26n1e6L3n0m7gP_f8T1Q';
 
-        // Global state variables
-        let tokens = 100;
-        let xp = 0;
-        let level = 1;
-        let completedQuests = {};
+        // Global state variables - Loaded from localStorage or default values
+        let tokens = parseInt(localStorage.getItem('juanDerQuestTokens') || '100');
+        let xp = parseInt(localStorage.getItem('juanDerQuestXp') || '0');
+        let level = parseInt(localStorage.getItem('juanDerQuestLevel') || '1');
+        let completedQuests = JSON.parse(localStorage.getItem('juanDerQuestCompletedQuests') || '{}');
+        let username = localStorage.getItem('juanDerQuestUsername') || '';
+
         let activeView = 'home'; // Default view after successful wallet connection
         let isNavOverlayOpen = false;
         let showStartPage = true;
         let selectedQuestId = null; // New state to store the ID of the selected quest for detail view
         let connectedWalletAddress = null; // New state for connected wallet address
-        let username = ''; // New state for username
 
         // Re-added location-related variables for quest detail page
         let userLatitude = null; // User's current latitude
@@ -397,6 +407,7 @@
                 }
             }
             level = newLevel;
+            saveAppState(); // Save state after level update
         }
 
         // Function to handle quest completion
@@ -409,39 +420,43 @@
                         xp += quest.rewardXp;
                         completedQuests[questId] = true;
                         updateLevel(); // Update level after XP changes
+                        saveAppState(); // Save state after quest completion
                         renderApp(); // Re-render the app to reflect changes
-                        alert(`Quest "${quest.name}" completed! You earned ${quest.rewardTokens} tokens and ${quest.rewardXp} XP.`);
+                        showMessage("Quest Completed!", `Quest "${quest.name}" completed! You earned ${quest.rewardTokens} tokens and ${quest.rewardXp} XP.`);
                     } else {
-                        alert('You are not close enough to this quest location to complete it!');
+                        showMessage("Location Alert", 'You are not close enough to this quest location to complete it!');
                     }
                 } else { // For quests without specific coordinates (e.g., "JuanDer Together")
                     tokens += quest.rewardTokens;
                     xp += quest.rewardXp;
                     completedQuests[questId] = true;
                     updateLevel();
+                    saveAppState(); // Save state after quest completion
                     renderApp();
-                    alert(`Quest "${quest.name}" completed! You earned ${quest.rewardTokens} tokens and ${quest.rewardXp} XP.`);
+                    showMessage("Quest Completed!", `Quest "${quest.name}" completed! You earned ${quest.rewardTokens} tokens and ${quest.rewardXp} XP.`);
                 }
             } else if (completedQuests[questId]) {
-                alert('You have already completed this quest!');
+                showMessage("Quest Status", 'You have already completed this quest!');
             }
         }
 
         // Function to simulate adding tokens
         function addTokens(amount, source) {
             tokens += amount;
+            saveAppState(); // Save state after token change
             renderApp();
-            alert(`You gained ${amount} tokens via ${source}!`);
+            showMessage("Tokens Gained", `You gained ${amount} tokens via ${source}!`);
         }
 
         // Function to simulate token redemption
         function redeemTokens(amount) {
             if (tokens >= amount) {
                 tokens -= amount;
+                saveAppState(); // Save state after token change
                 renderApp();
-                alert(`You redeemed ${amount} tokens for a discount!`);
+                showMessage("Tokens Redeemed", `You redeemed ${amount} tokens for a discount!`);
             } else {
-                alert('Not enough tokens to redeem.');
+                showMessage("Insufficient Tokens", 'Not enough tokens to redeem.');
             }
         }
 
@@ -449,10 +464,11 @@
         function donateTokens(amount) {
             if (tokens >= amount) {
                 tokens -= amount;
+                saveAppState(); // Save state after token change
                 renderApp();
-                alert(`You donated ${amount} tokens to a heritage site! Thank you for your contribution.`);
+                showMessage("Donation Successful", `You donated ${amount} tokens to a heritage site! Thank you for your contribution.`);
             } else {
-                alert('Not enough tokens to donate.');
+                showMessage("Insufficient Tokens", 'Not enough tokens to donate.');
             }
         }
 
@@ -488,7 +504,7 @@
                                 errorMessage = "The request to get user location timed out.";
                                 break;
                         }
-                        alert(errorMessage);
+                        showMessage("Location Error", errorMessage);
                         if (callback) callback(false);
                         renderApp(); // Re-render to show error/denied status
                     },
@@ -496,7 +512,7 @@
                 );
             } else {
                 locationCheckStatus = 'error';
-                alert("Geolocation is not supported by your browser.");
+                showMessage("Geolocation Not Supported", "Geolocation is not supported by your browser.");
                 if (callback) callback(false);
                 renderApp(); // Re-render to show error
             }
@@ -526,7 +542,8 @@
             tokens += quizRewardTokens;
             xp += quizRewardXp;
             updateLevel();
-            alert(`Quiz completed! You scored ${quizScore} out of ${currentQuiz.questions.length}.\nYou earned ${quizRewardTokens} tokens and ${quizRewardXp} XP.`);
+            saveAppState(); // Save state after quiz completion
+            showMessage("Quiz Completed!", `Quiz completed! You scored ${quizScore} out of ${currentQuiz.questions.length}.\nYou earned ${quizRewardTokens} tokens and ${quizRewardXp} XP.`);
             activeView = 'home'; // Go back to home after quiz
             currentQuiz = null; // Reset quiz state
             renderApp();
@@ -540,11 +557,32 @@
                 const option = mapVoteOptions.find(opt => opt.id === optionId);
                 if (option) {
                     option.votes++;
-                    alert(`You voted for ${option.name}! ${voteCost} tokens deducted.`);
+                    showMessage("Vote Cast", `You voted for ${option.name}! ${voteCost} tokens deducted.`);
                 }
+                saveAppState(); // Save state after vote
                 renderApp();
             } else {
-                alert('Not enough tokens to vote!');
+                showMessage("Insufficient Tokens", 'Not enough tokens to vote!');
+            }
+        }
+
+        // Custom Message Box Function
+        function showMessage(title, message) {
+            const msgBox = document.getElementById('message-box');
+            const msgBoxTitle = document.getElementById('message-box-title');
+            const msgBoxContent = document.getElementById('message-box-content');
+            const msgBoxOkButton = document.getElementById('message-box-ok-button');
+
+            if (msgBox && msgBoxTitle && msgBoxContent && msgBoxOkButton) {
+                msgBoxTitle.textContent = title;
+                msgBoxContent.textContent = message;
+                msgBox.classList.remove('hidden');
+                msgBoxOkButton.onclick = () => {
+                    msgBox.classList.add('hidden');
+                };
+            } else {
+                // Fallback to console.log if message box elements are not found
+                console.warn("Message box elements not found, falling back to console log:", title, message);
             }
         }
 
@@ -1447,7 +1485,7 @@
                     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                     if (accounts.length > 0) {
                         connectedWalletAddress = accounts[0];
-                        // Only set activeView to 'home' if a username is already set
+                        // If username is already set (from localStorage or input), go to home
                         if (username) {
                             activeView = 'home';
                         } else {
@@ -1457,19 +1495,18 @@
                         console.log(`Wallet connected: ${connectedWalletAddress}`);
                     } else {
                         connectedWalletAddress = null;
-                        activeView = 'connect-wallet';
+                        activeView = 'connect-wallet'; // No accounts, force connect wallet view
                         console.log("No accounts found.");
                     }
                 } catch (error) {
                     console.error("Error connecting to MetaMask:", error);
                     connectedWalletAddress = null;
-                    activeView = 'connect-wallet';
-                    // User might have rejected connection, or other error
-                    // alert("Failed to connect wallet. Please ensure MetaMask is unlocked and try again.");
+                    activeView = 'connect-wallet'; // Error in connection, force connect wallet view
+                    showMessage("Connection Failed", "Failed to connect wallet. Please ensure MetaMask is unlocked and try again.");
                 }
             } else {
                 connectedWalletAddress = null;
-                activeView = 'connect-wallet';
+                activeView = 'connect-wallet'; // MetaMask not detected, force connect wallet view
                 console.log("MetaMask not detected.");
             }
             renderApp();
@@ -1531,7 +1568,7 @@
                         window.location.href = appStoreUrl;
                     } else {
                         // Fallback for desktop if MetaMask is not installed
-                        alert("MetaMask is not installed. Please install the MetaMask extension for your browser.");
+                        showMessage("MetaMask Not Installed", "MetaMask is not installed. Please install the MetaMask extension for your browser.");
                     }
                 }, 1000); // 1 second delay to allow deep link to work
             }
@@ -1542,10 +1579,11 @@
                 connectWalletButton.onclick = async () => {
                     const usernameInput = document.getElementById('username-input');
                     if (!usernameInput || !usernameInput.value.trim()) {
-                        alert("Please enter a username.");
+                        showMessage("Username Required", "Please enter a username to proceed.");
                         return;
                     }
                     username = usernameInput.value.trim(); // Store the username
+                    localStorage.setItem('juanDerQuestUsername', username); // Save username to localStorage
 
                     if (window.ethereum) {
                         await attemptWalletConnection(); // Attempt connection directly
