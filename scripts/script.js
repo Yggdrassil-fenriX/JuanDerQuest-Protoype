@@ -261,12 +261,12 @@ const quizzes = {
 
 // Map Vote Options
 const mapVoteOptions = [
-    { id: 'option1', name: 'Destination A', imageUrl: 'https://placehold.co/150x150/ADD8E6/000000?text=Option+1', votes: 0 },
-    { id: 'option2', name: 'Destination B', imageUrl: 'https://placehold.co/150x150/90EE90/000000?text=Option+2', votes: 0 },
-    { id: 'option3', name: 'Destination C', imageUrl: 'https://placehold.co/150x150/FFB6C1/000000?text=Option+3', votes: 0 },
-    { id: 'option4', name: 'Destination D', imageUrl: 'https://placehold.co/150x150/FFD700/000000?text=Option+4', votes: 0 },
-    { id: 'option5', name: 'Destination E', imageUrl: 'https://placehold.co/150x150/DA70D6/000000?text=Option+5', votes: 0 },
-    { id: 'option6', name: 'Destination F', imageUrl: 'https://placehold.co/150x150/87CEEB/000000?text=Option+6', votes: 0 },
+    { id: 'option1', name: 'Tondaligan Beach', imageUrl: 'https://placehold.co/150x150/ADD8E6/000000?text=Option+1', votes: 0 },
+    { id: 'option2', name: 'Dagupan City Museum', imageUrl: 'https://placehold.co/150x150/90EE90/000000?text=Option+2', votes: 0 },
+    { id: 'option3', name: 'St. John\'s Cathedral', imageUrl: 'https://placehold.co/150x150/FFB6C1/000000?text=Option+3', votes: 0 },
+    { id: 'option4', name: 'Dagupe Restaurant', imageUrl: 'https://placehold.co/150x150/FFD700/000000?text=Option+4', votes: 0 },
+    { id: 'option5', name: 'Japanese-Philippine Friendship Garden', imageUrl: 'https://placehold.co/150x150/DA70D6/000000?text=Option+5', votes: 0 },
+    { id: 'option6', name: 'Dagupan City Plaza', imageUrl: 'https://placehold.co/150x150/87CEEB/000000?text=Option+6', votes: 0 },
 ];
 
 
@@ -494,9 +494,9 @@ function renderNavOverlay() {
                 ${buttonData.map((button, index) => `
                     <button
                         data-view="${button.view}"
-                        class="flex flex-col items-center justify-center w-20 h-20 rounded-full text-white font-bold text-sm
+                        class="flex flex-col items-center justify-center w-20 h-20 rounded-full text-white font-bold text-[.7rem]
                         transition-all duration-300 transform shadow-lg
-                        ${activeView === button.view ? 'bg-green-800 scale-110' : 'bg-green-700 hover:bg-green-600'}"
+                        ${activeView === button.view ? 'bg-[#985527] scale-110' : 'bg-[#db9d5f]'}"
                         style="opacity: ${isNavOverlayOpen ? 1 : 0}; transform: ${isNavOverlayOpen ? 'scale(1)' : 'scale(0)'}; transition: all 0.3s ease-out ${isNavOverlayOpen ? index * 0.05 : (buttonData.length - 1 - index) * 0.05}s;"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -545,7 +545,7 @@ function renderDesktopNavbar() {
 function renderHomeView() {
     // Removed location-related display variables as per user request
     return `
-        <div class="p-0 bg-white rounded-xl shadow-lg mt-6 max-w-4xl mx-auto overflow-hidden">
+        <div class="p-0 bg-white rounded-xl shadow-lg max-w-4xl mx-auto overflow-hidden">
             <div class="relative w-full h-48 bg-gradient-to-b from-green-400 to-green-600 rounded-b-3xl overflow-hidden flex flex-col justify-end pb-4 px-4 shadow-md">
                 <img
                     src="./assets/background.jpg"
@@ -562,14 +562,15 @@ function renderHomeView() {
                             onerror="this.onerror=null;this.src='https://via.placeholder.com/50x50/D1D5DB/FFFFFF?text=User';"
                         />
                         <div>
-                            <p class="text-white text-sm font-semibold">Welcome, ${username || 'Lengleng'}</p>
+                            <p class="text-white text-sm font-semibold">Welcome, JuanDerer!</p>
                             <div class="flex items-center space-x-3 mt-1">
-                                <span class="text-white text-sm font-semibold flex items-center">
-                                    ✨ <span class="font-bold ml-1">${level}</span> Level
-                                </span>
-                                <span class="text-white text-sm font-semibold flex items-center">
-                                    💰 <span class="font-bold ml-1">${tokens}</span> Tokens
-                                </span>
+                            <span class="text-white text-sm font-semibold flex items-center">
+                             
+                                <span class="font-bold ml-1"><img src="assets/Token.png" class="w-5 inline"> ${tokens} Tokens</span>
+                            </span>
+                            <span class="text-white text-sm font-semibold flex items-center">
+                                <span class="font-bold ml-1">✨ Level ${level}</span>
+                            </span>
                             </div>
                         </div>
                     </div>
@@ -594,7 +595,7 @@ function renderHomeView() {
             </div>
 
             <!-- Removed Mini GPS Section as per user request -->
-
+            <br>
             <!-- Category Icons -->
             <div class="flex justify-around p-4 bg-white shadow-sm -mt-4 relative z-10 rounded-t-xl">
                 <div class="flex flex-col items-center text-green-700 font-semibold text-sm">
@@ -655,14 +656,6 @@ function renderHomeView() {
                                 </svg>
                             </div>
                             <div class="p-3">
-                                <div class="flex items-center text-yellow-500 text-xs mb-1">
-                                    ${Array.from({ length: 5 }).map((_, i) => `
-                                        <svg key="${i}" class="h-4 w-4 ${i < Math.floor(quest.rating) ? 'text-yellow-500' : 'text-gray-300'}" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z" />
-                                        </svg>
-                                    `).join('')}
-                                    <span class="ml-1 text-gray-600">(${quest.rating})</span>
-                                </div>
                                 <p class="font-semibold text-gray-800 text-sm mb-1">${quest.name}</p>
                                 <p class="text-gray-500 text-xs truncate">${quest.location}</p>
                             </div>
@@ -701,18 +694,12 @@ function renderHomeView() {
 function renderQuizzesListPage() {
     return `
         <div class="p-0 bg-white rounded-xl shadow-lg mt-6 max-w-4xl mx-auto overflow-hidden">
-            <div class="relative w-full h-48 bg-gradient-to-b from-blue-400 to-blue-600 rounded-b-3xl overflow-hidden flex flex-col justify-end pb-4 px-4 shadow-md">
-                <img
-                    src="https://via.placeholder.com/800x300/60A5FA/FFFFFF?text=Quizzes+Background"
-                    alt="Quizzes background"
-                    class="absolute inset-0 w-full h-full object-cover opacity-80"
-                    onerror="this.onerror=null;this.src='https://via.placeholder.com/800x300/A7F3D0/10B981?text=Quizzes+Fallback';"
-                />
+            <div class="relative w-full h-48 bg-gradient-to-b  rounded-b-3xl overflow-hidden flex flex-col justify-end pb-4 px-4 shadow-md">
                 <div class="relative z-10 text-center">
                     <img
-                        src="https://via.placeholder.com/200x50.png?text=QUIZZES"
+                        src="./assets/quiz.png"
                         alt="QUIZZES Title Bar"
-                        class="w-48 mx-auto mb-4"
+                        class="mx-auto mb-4"
                         onerror="this.onerror=null;this.src='https://via.placeholder.com/200x50.png?text=QUIZZES';"
                     />
                 </div>
@@ -746,15 +733,6 @@ function renderQuizzesListPage() {
                         </div>
                     `).join('')}
                 </div>
-            </div>
-            <!-- Bottom Logo -->
-            <div class="flex justify-center p-4">
-                <img
-                    src="https://via.placeholder.com/100x40/34D399/FFFFFF?text=JUANDER+QUEST"
-                    alt="JuanDer Quest Logo"
-                    class="w-24 h-auto"
-                    onerror="this.onerror=null;this.src='https://via.placeholder.com/100x40/A7F3D0/10B981?text=Logo';"
-                />
             </div>
         </div>
     `;
@@ -825,7 +803,7 @@ function renderQuestsView() {
                     <img
                         src="assets/questsLogo.png"
                         alt="QUESTS Title Bar"
-                        class="w-1/2 mx-auto mb-4"
+                        class="mx-auto mb-4"
                         onerror="this.onerror=null;this.src='https://via.placeholder.com/200x50.png?text=QUESTS';"
                     />
                 </div>
@@ -854,29 +832,13 @@ function renderQuestsView() {
                             </div>
                             <div class="flex-shrink-0 ml-3 text-right">
                                 <div class="flex items-center justify-end text-green-600 font-bold text-sm">
-                                    <span class="mr-1">${quest.rewardTokens}</span>
-                                    💰
-                                </div>
-                                <div class="flex items-center justify-end text-yellow-500 text-xs mt-1">
-                                    ${Array.from({ length: 5 }).map((_, i) => `
-                                        <svg key="${i}" class="h-4 w-4 ${i < Math.floor(quest.rating) ? 'text-yellow-500' : 'text-gray-300'}" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z" />
-                                        </svg>
-                                    `).join('')}
+                                    ${quest.rewardTokens}
+                                    <img src="./assets/Token.png" class="w-5">
                                 </div>
                             </div>
                         </div>
                     `).join('')}
                 </div>
-            </div>
-            <!-- Bottom Logo -->
-            <div class="flex justify-center p-4">
-                <img
-                    src="https://via.placeholder.com/100x40/34D399/FFFFFF?text=JUANDER+QUEST"
-                    alt="JuanDer Quest Logo"
-                    class="w-24 h-auto"
-                    onerror="this.onerror=null;this.src='https://via.placeholder.com/100x40/A7F3D0/10B981?text=Logo';"
-                />
             </div>
         </div>
     `;
@@ -898,7 +860,7 @@ function renderProfileView() {
     ));
 
     return `
-        <div class="relative w-full max-w-sm bg-white rounded-3xl shadow-xl text-white overflow-hidden pb-5">
+        <div class="relative w-full max-w-sm bg-white backdrop-blur-md rounded-3xl shadow-xl text-white overflow-hidden pb-5">
             <div class="flex justify-between items-center p-4 relative z-10">
                 <i class="fas fa-arrow-left text-2xl"></i>
                 <i class="fas fa-bell text-2xl"></i>
@@ -907,8 +869,8 @@ function renderProfileView() {
             <div class="flex flex-col items-center px-5 relative z-0 -mt-8 pb-0">
                 <img src="./assets/profile-icon.png" alt="Profile Picture" class="w-32 h-32 rounded-full border-4 border-white object-cover shadow-lg">
                 <div class="text-center mt-4 w-full">
-                    <div class="inline-flex items-center justify-center bg-white p-2 pl-4 pr-3 rounded-full shadow-md">
-                        <span class="bg-amber-800 text-white px-3 py-1 rounded-full text-lg font-bold mr-3 shadow-sm">LengLeng</span>
+                    <div class="inline-flex items-center justify-center bg-[#f8ecd2] p-2 pl-4 pr-3 rounded-full shadow-md">
+                        <span class="bg-[#f8ecd2] text-[#985527] px-3 py-1 rounded-full text-lg font-bold mr-3 shadow-sm">Juan D.</span>
                         <span class="text-yellow-400 text-xl font-bold">12,345</span>
                         <img src="./assets/Token.png" alt="" class="w-8">
                     </div>
@@ -924,19 +886,19 @@ function renderProfileView() {
                         <div class="w-20 h-24 bg-blue-500 rounded shield-shape flex justify-center items-center mb-1 shadow-inner border border-blue-600">
                             <img src="./assets/baewatcher.png" alt="Baewatcher Badge" class="w-16 h-16 object-contain drop-shadow">
                         </div>
-                        <span class="text-sm font-semibold text-gray-800">BaeWatcher</span>
+                        <span class="text-[.6rem] font-semibold text-gray-800">BaeWatcher</span>
                     </div>
                     <div class="flex flex-col items-center p-2 bg-white rounded-lg shadow-sm border border-gray-200">
                         <div class="w-20 h-24 bg-green-500 rounded shield-shape flex justify-center items-center mb-1 shadow-inner border border-green-600">
                             <img src="./assets/gubatron.png" alt="GubaTron Badge" class="w-16 h-16 object-contain drop-shadow">
                         </div>
-                        <span class="text-sm font-semibold text-gray-800">GubaTron</span>
+                        <span class="text-[.6rem] font-semibold text-gray-800">GubaTron</span>
                     </div>
                     <div class="flex flex-col items-center p-2 bg-white rounded-lg shadow-sm border border-gray-200">
                         <div class="w-20 h-24 bg-red-500 rounded shield-shape flex justify-center items-center mb-1 shadow-inner border border-red-600">
                             <img src="./assets/juanderfull.png" alt="JuanDerFull Badge" class="w-16 h-16 object-contain drop-shadow">
                         </div>
-                        <span class="text-sm font-semibold text-gray-800">JuanDerFull</span>
+                        <span class="text-[.6rem] font-semibold text-gray-800">JuanDerFull</span>
                     </div>
 
                     <div class="flex flex-col items-center p-2 bg-white rounded-lg shadow-sm border border-gray-200">
@@ -986,17 +948,25 @@ function renderProfileView() {
 function renderWalletView() {
     const truncatedAddress = connectedWalletAddress ? `${connectedWalletAddress.substring(0, 10)}...${connectedWalletAddress.substring(connectedWalletAddress.length - 10)}` : 'N/A';
     return `
-        <div class="p-0 bg-gradient-to-br from-orange-100 to-amber-200 rounded-xl shadow-lg mt-6 max-w-xl mx-auto overflow-hidden text-center">
-            <div class="relative w-full h-48 bg-cover bg-center flex flex-col justify-between items-center py-4" style="background-image: url('https://via.placeholder.com/400x200/FDBA74/FFFFFF?text=Wallet+Header');">
-                <div class="absolute inset-0 bg-orange-500 opacity-70"></div>
-
-                <p class="text-lg">${truncatedAddress}</p>
+        <div class="p-0 bg-[#985527] rounded-xl shadow-lg mt-6 max-w-xl mx-auto overflow-hidden text-center">
+            <div class="relative w-full h-48 bg-cover bg-center flex  justify-between items-center py-10" style="background-image: url('https://via.placeholder.com/400x200/FDBA74/FFFFFF?text=Wallet+Header');">
+                
+                <p class="text-lg text-center mx-auto text-white ">
+                    <img
+                        src="assets/mywallet.png"
+                        alt="QUESTS Title Bar"
+                        class="mx-auto w-8/12"
+                        onerror="this.onerror=null;this.src='https://via.placeholder.com/200x50.png?text=QUESTS';"
+                    />
+                    ${truncatedAddress}
+                </p>
+                <br><br>
             </div>
 
             <div class="p-6 bg-white rounded-b-xl shadow-lg">
-                <div class="bg-amber-100 p-4 rounded-lg shadow-inner border border-amber-200 mb-6 relative -mt-16 z-20">
+                <div class="bg-amber-100 p-2 rounded-lg shadow-inner border border-amber-200 mb-6 relative -mt-16 z-20">
                     
-                    <p class="text-4xl font-bold text-amber-800 flex items-center justify-center">
+                    <p class="text-4xl font-bold text-amber-800 flex items-center justify-center">                        
                         ${tokens} <span class="ml-2 text-3xl"><img src="./assets/Token.png" class="w-10"></span>
                     </p>
                 </div>
@@ -1020,13 +990,6 @@ function renderWalletView() {
 
                         <span class="text-xs font-semibold text-gray-700">Earn</span>
                     </button>
-                </div>
-
-                <div class="bg-amber-50 p-4 rounded-lg shadow-inner border border-amber-200 text-left">
-                    <h3 class="text-lg font-bold text-amber-800 mb-2">ABOUT</h3>
-                    <p class="text-md text-gray-700 mb-2">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                    </p>
                 </div>
             </div>
         </div>
@@ -1119,16 +1082,8 @@ function renderQuestDetailPage() {
             <div class="bg-emerald-50 p-5 rounded-lg shadow-md border border-emerald-200 mb-6">
                 <h3 class="text-xl font-semibold text-emerald-800 mb-3">Details</h3>
                 <p class="text-gray-700 mb-2">${quest.description}</p>
-                <p class="text-gray-700 mb-2"><strong>Reward:</strong> 💰 ${quest.rewardTokens} Tokens, ✨ ${quest.rewardXp} XP</p>
+                <p class="text-gray-700 mb-2"><strong>Reward:</strong> <img src="assets/Token.png" class="inline w-5"> ${quest.rewardTokens} Tokens, ✨ ${quest.rewardXp} XP</p>
                 <p class="text-gray-700 mb-2"><strong>Badge:</strong> ${quest.badge}</p>
-                <div class="flex items-center text-yellow-500 text-sm">
-                    ${Array.from({ length: 5 }).map((_, i) => `
-                        <svg key="${i}" class="h-5 w-5 ${i < Math.floor(quest.rating) ? 'text-yellow-500' : 'text-gray-300'}" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.538 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.783.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z" />
-                        </svg>
-                    `).join('')}
-                    <span class="ml-1 text-gray-600">(${quest.rating})</span>
-                </div>
             </div>
 
             ${locationStatusHtml}
@@ -1150,13 +1105,7 @@ function renderQuestDetailPage() {
 // Renders the Map Vote Page
 function renderMapVoteView() {
     return `
-        <div class="relative min-h-screen bg-gradient-to-br from-green-50 to-green-100 flex flex-col items-center pt-24 pb-8">
-            <img
-                src="./assets/background.jpg"
-                alt="Background"
-                class="absolute inset-0 w-full h-full object-cover opacity-60 z-0"
-                onerror="this.onerror=null;this.src='https://via.placeholder.com/800x300/A7F3D0/10B981?text=Vote+Background';"
-            />
+        <div class="relative min-h-screen flex flex-col items-center pt-24 pb-8">
             <div class="relative z-10 flex flex-col items-center w-full max-w-md mx-auto px-4">
                 <img src="./assets/mapvote.png" class="">
 
@@ -1175,7 +1124,7 @@ function renderMapVoteView() {
                                 />
                                 <p class="font-semibold text-gray-800 text-sm mb-2">${option.name}</p>
                                 <button data-option-id="${option.id}"
-                                        class="vote-button w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-full shadow-md transition-transform duration-300 hover:scale-105">
+                                        class="vote-button w-full bg-[#985527] hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-full shadow-md transition-transform duration-300 hover:scale-105">
                                     VOTE
                                 </button>
                                 <p class="text-xs text-gray-500 mt-1">Votes: ${option.votes}</p>
@@ -1192,7 +1141,7 @@ function renderMapVoteView() {
 // Renders the Start Page
 function renderStartPage() {
     return `
-        <div id="start-page" class="fixed inset-0 bg-gradient-to-br from-green-500 to-emerald-700 flex flex-col items-center justify-center z-[100] text-white p-4 text-center" style="background-image: url('./assets/start-page.png');">
+        <div id="start-page" class="fixed bg-cover inset-0 bg-gradient-to-br from-green-500 to-emerald-700 flex flex-col items-center justify-center z-[100] text-white p-4 text-center" style="background-image: url('./assets/start-page.png');">
             <img
                 src="./assets/logo.png"
                 alt="JuanDer Quest Logo"
@@ -1306,7 +1255,7 @@ function renderApp() {
 
     // Mobile nav toggle and overlay are now always rendered, but hidden on desktop via CSS
     const mobileNavToggleHtml = `
-        <button id="mobile-nav-toggle" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-green-600 hover:bg-green-700 text-white text-lg font-bold py-3 px-6 rounded-full shadow-xl transform transition-transform duration-300 hover:scale-105 z-[99] flex items-center justify-center w-16 h-16 relative sm:hidden">
+        <button id="mobile-nav-toggle" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-green-600 hover:bg-green-700 text-white text-lg font-bold py-3 px-6 rounded-full shadow-xl transform transition-transform duration-300 hover:scale-105 z-[99] flex items-center justify-center w-16 h-16 fixed bottom-10 left-0 right-0 sm:hidden">
             <img src="./assets/NavButton.png" class="absolute">
         </button>
         ${renderNavOverlay()}
@@ -1330,7 +1279,7 @@ function renderApp() {
     } else {
         appRoot.innerHTML = `
             ${headerHtml}
-            <main class="container mx-auto px-4 flex-grow pb-20 md:pb-8 ${mainPaddingClass}">
+            <main class="container mx-auto px-4 flex-grow pb-20 md:pb-8 ${mainPaddingClass}" style="background-image: url('./assets/background.jpg')">
                 ${mainContentHtml}
             </main>
             ${mobileNavToggleHtml}
